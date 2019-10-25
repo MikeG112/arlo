@@ -17,93 +17,49 @@ def test_cast_exception():
                  .format(expected_msg, str(e.value))
                 
 
-"""
+@pytest.fixture()
+def batch_results():
+
+    # Cartoon example from Stark
+    num_pcts = 800
+    votes_per_precint = 255
+    margin = 0.052
+
+    batch_results = {}
+    for precinct in range(num_pcts):
+        batch_results['Precinct {}'.format(precinct)] = {
+            'cand1': 125,
+            'cand2': 112,
+            'cand3': 13
+            'total': 255
+        }
+
+    yield batch_results
+
+@pytest.fixture():
+
+    #Cartoon example from Stark
+    results = {
+        'cand1': 100000,
+        'cand2': 89600,
+        'cand3': 10400,
+        'ballots': 200000,
+        'numWinners': 1
+    }
+
 @pytest.fixture
-def sampler():
+def sampler(batch_results):
     seed = 12345678901234567890
 
     risk_limit = .1
-    contests = {
-        'test1': {
-            'cand1': 600,
-            'cand2': 400,
-            'ballots': 1000,
-            'numWinners': 1
-        },
-        'test2': {
-            'cand1': 600,
-            'cand2': 200,
-            'cand3': 100,
-            'ballots': 900,
-            'numWinners': 1
-        },
-        'test3': {
-            'cand1': 100,
-            'ballots': 100,
-            'numWinners': 1
-        },
-        'test4': {
-            'cand1': 100,
-            'ballots': 100,
-            'numWinners': 1
-        },
-        'test5': {
-            'cand1' : 500,
-            'cand2': 500,
-            'ballots': 1000,
-            'numWinners': 1
-        },
-        'test6': {
-            'cand1': 300,
-            'cand2': 200,
-            'cand3': 200,
-            'ballots': 1000,
-            'numWinners': 1
-        },
-        'test7': {
-            'cand1': 300,
-            'cand2': 200,
-            'cand3': 100,
-            'ballots': 700,
-            'numWinners': 2
-        },
-        'test7': {
-            'cand1': 300,
-            'cand2': 200,
-            'cand3': 100,
-            'ballots': 700,
-            'numWinners': 2
-
-        },
-        'test8': {
-            'cand1': 300,
-            'cand2': 300,
-            'cand3': 100,
-            'ballots': 700,
-            'numWinners': 2
-
-        },
-        'test9': {
-            'cand1': 300,
-            'cand2': 200,
-            'ballots': 700,
-            'numWinners': 2
-        },
-        'test10': {
-            'cand1': 600,
-            'cand2': 300,
-            'cand3': 100,
-            'ballots': 1000,
-            'numWinners': 2
-        },
-    }
 
 
+    
 
-    yield Sampler('BRAVO', seed, risk_limit, contests)
+    yield Sampler('CAST', seed, risk_limit, contests, batch_results)
 
 
-
+"""
 def test_expected_sample_sizes(sampler):
     # Test expected sample sizes computation
 
@@ -530,9 +486,159 @@ def test_compute_risk(sampler):
         expected_decision = expected_decisions[contest]
         assert decision == expected_decision, 'Risk decision for {} failed! Expected {}, got{}'.format(contest, expected_decision, decision)
         
-
+"""
 
 # Useful test data
+contests = {
+    'test1': {
+        'cand1': 600,
+        'cand2': 400,
+        'ballots': 1000,
+        'numWinners': 1
+    },
+    'test2': {
+        'cand1': 600,
+        'cand2': 200,
+        'cand3': 100,
+        'ballots': 900,
+        'numWinners': 1
+    },
+    'test3': {
+        'cand1': 100,
+        'ballots': 100,
+        'numWinners': 1
+    },
+    'test4': {
+        'cand1': 100,
+        'ballots': 100,
+        'numWinners': 1
+    },
+    'test5': {
+        'cand1' : 500,
+        'cand2': 500,
+        'ballots': 1000,
+        'numWinners': 1
+    },
+    'test6': {
+        'cand1': 300,
+        'cand2': 200,
+        'cand3': 200,
+        'ballots': 1000,
+        'numWinners': 1
+    },
+    'test7': {
+        'cand1': 300,
+        'cand2': 200,
+        'cand3': 100,
+        'ballots': 700,
+        'numWinners': 2
+    },
+    'test7': {
+        'cand1': 300,
+        'cand2': 200,
+        'cand3': 100,
+        'ballots': 700,
+        'numWinners': 2
+
+    },
+    'test8': {
+        'cand1': 300,
+        'cand2': 300,
+        'cand3': 100,
+        'ballots': 700,
+        'numWinners': 2
+
+    },
+    'test9': {
+        'cand1': 300,
+        'cand2': 200,
+        'ballots': 700,
+        'numWinners': 2
+    },
+    'test10': {
+        'cand1': 600,
+        'cand2': 300,
+        'cand3': 100,
+        'ballots': 1000,
+        'numWinners': 2
+    },
+}
+
+batch = {
+    'test1': {
+        'cand1': 600,
+        'cand2': 400,
+        'ballots': 1000,
+        'numWinners': 1
+    },
+    'test2': {
+        'cand1': 600,
+        'cand2': 200,
+        'cand3': 100,
+        'ballots': 900,
+        'numWinners': 1
+    },
+    'test3': {
+        'cand1': 100,
+        'ballots': 100,
+        'numWinners': 1
+    },
+    'test4': {
+        'cand1': 100,
+        'ballots': 100,
+        'numWinners': 1
+    },
+    'test5': {
+        'cand1' : 500,
+        'cand2': 500,
+        'ballots': 1000,
+        'numWinners': 1
+    },
+    'test6': {
+        'cand1': 300,
+        'cand2': 200,
+        'cand3': 200,
+        'ballots': 1000,
+        'numWinners': 1
+    },
+    'test7': {
+        'cand1': 300,
+        'cand2': 200,
+        'cand3': 100,
+        'ballots': 700,
+        'numWinners': 2
+    },
+    'test7': {
+        'cand1': 300,
+        'cand2': 200,
+        'cand3': 100,
+        'ballots': 700,
+        'numWinners': 2
+
+    },
+    'test8': {
+        'cand1': 300,
+        'cand2': 300,
+        'cand3': 100,
+        'ballots': 700,
+        'numWinners': 2
+
+    },
+    'test9': {
+        'cand1': 300,
+        'cand2': 200,
+        'ballots': 700,
+        'numWinners': 2
+    },
+    'test10': {
+        'cand1': 600,
+        'cand2': 300,
+        'cand3': 100,
+        'ballots': 1000,
+        'numWinners': 2
+    },
+}
+
 round0_sample_results = {
     'test1': {
         'cand1': 0,
@@ -703,4 +809,3 @@ true_sample_sizes = {
         },
     },
 }
-"""
