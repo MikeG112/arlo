@@ -1,10 +1,98 @@
 import math
 from scipy import stats
+from typing import Dict
 from audits.audit import RiskLimitingAudit
 
 class CAST(RiskLimitingAudit):
-    def __init__(self, risk_limit):
+
+    batch_results: Dict[str, Dict[str, Dict[str, int]]]
+
+    def __init__(self, risk_limit, batch_results):
+        ''' 
+        Initialize
+
+        Inputs:
+            risk_limit - inherited
+            batch_results - result of the election in each batch:
+            {
+                'batch1': {
+                    'contest1': {
+                        'cand1': votes,
+                        'cand2': votes,
+                        ...
+                        'total': votes
+                    },
+                    'contest2': {
+                        ...
+                    },
+                    ...
+                },
+                'batch2': {
+                    ...
+                },
+                ...
+            }
+        '''
         super().__init__(risk_limit)
+
+        self.batch_results = batch_results
+
+        # Set a CAST tolerance of 3 ballots per batch
+        self.tolerance = 3
+
+    def get_max_error(self, batch_contest_results, margins):
+        """
+        A function that finds the maximum possible relative overstatement in a given contest,
+        given by 
+           max_{w \in W_r, l \in L_r}{(v_wp − v+_lp + b_rp)/V_wl} == u_p
+
+        Input:
+            batch_contest_results - the resutls for a contest in this batch:
+            {
+                'cand1': votes,
+                'cand2': votes,
+                ...
+                'total': total_votes,
+            }
+            margins               - the margins for this contest in the overall election:
+            {
+                'winners": {
+                    'winner1': {
+                        'p_w': p_w,
+                        's_w': s_w,
+                        's_wl': {
+                            'loser1': s_w/(s_w + s_l1),
+                            ...
+                        }
+                    },
+                    ...
+                },
+                'losers': {
+                    'loser1': {
+                        'p_l': p_l,
+                        's_l': s_l
+                    },
+                ...
+                }    
+            }
+
+
+        Output:
+            error: the maximum potential overstatement in this batch
+
+        """
+        b_p = batch_contest_results['total']
+        u_p = []
+        
+        for winner in margins['winners']:
+            v_wp = batch_contest_results[winner]
+            for loser in margins['losers']:
+                v_lp = batch_contest_results[loser]
+
+                # TODO Check that this is correct
+                u_p.append((v_wp - vlp + b_p)/margins['winners'][winner]['s_wl'][loser])
+        
+        return max(up)
 
     def compute_initial_values(contests, margins, tolerance):
         '''
@@ -26,11 +114,6 @@ class CAST(RiskLimitingAudit):
                 }
         '''
 
-        # unpack params
-        E = params['E']
-        to_audit = params['to_audit']
-        tolerance = params['tolerance']
-
         # Compute initial values for the audit, including error bounds
         total = 0
         total_audited = 0
@@ -39,71 +122,20 @@ class CAST(RiskLimitingAudit):
         T = 0
         u_bars = []
 
-        v_count = 0
-        for vtd in election_data:
-            for group in to_audit: 
-                u_p = 0
-                u_p_capped = 0
-                b_p = 0
-                loser = 0
-                lookup = 0
-                t = 0
-                for contest in to_audit[group]:
-                    if contest not in election_data[vtd]:
-                        # Some races are only voted in some VTDs
-                        continue
-                    else:   
-                        v_count += 1
-                        windex, runner_up, margins, b_cp =\
-                                rla_util.compute_margins(election_data[vtd][contest])
+        for batch in batch_results:
+            u_ps = []
+            b_p = batch_results[batch]['total']
+            t = 0
+            for contest in batch_results[batch]:
+                u_ps = self.get_max_error(self, batch_results[batch][contest], margins[contest]
+                
 
-                        if not b_cp:
-                            u_p = 0
-                            max_ep = 0
-                            u_capped = 0
-                            max_ep_capped = 0
-                        else:
-                            b_p = max(b_p, b_cp)
+            t = t/b_p
+            t_p = min(t, u_p)
 
-                            max_ep, winner, loser = rla_util.get_max_error(\
-                                    election_data[vtd][contest], V_wl[contest]['margin'])
-
-                            if max_ep > u_p:
-                                u_p = max_ep
-
-                            lookup = loser
-                            # This means a losing candidate won this batch
-                            if not V_wl[contest]['margin'][lookup]:
-                                lookup = winner
-
-                            # Here's where we account for our different error bound. 
-                            # If u_p is already within the bound, leave it alone
-                            u_p_capped = min(u_p, float(E*b_p)/V_wl[contest]['margin'][lookup])
-                            max_ep_capped = min(max_ep, float(E*b_p)/V_wl[contest]['margin'][lookup])
-
-                            t = float(tolerance)/(V_wl[contest]['margin'][lookup])
-
-                        t_p_unpooled = min(t, max_ep)
-                        t_p_unp_capped = min(t, max_ep_capped)
-
-                        U['unpooled'][group][contest] += max_ep
-                        U['unpooled/capped'][group][contest] += max_ep_capped
-                        T['unpooled'][group][contest] += min(t_p_unpooled, max_ep)
-                        T['unpooled/capped'][group][contest] += min(t_p_unp_capped, max_ep_capped)
-                        u_bars['unpooled'][group][contest].append(max_ep - t_p_unpooled)
-                        u_bars['unpooled/capped'][group][contest].append(max_ep_capped - t_p_unp_capped)
-
-                t_p = min(t, u_p)
-                t_p_capped = min(t, u_p_capped)
-
-                u_bars['pooled'][group].append(u_p - t_p)
-                u_bars['pooled/capped'][group].append(u_p_capped - t_p_capped)
-
-                T['pooled'][group] += min(t_p, u_p)
-                T['pooled/capped'][group] += min(t_p_capped, u_p_capped)
-
-                U['pooled'][group] += u_p
-                U['pooled/capped'][group] += u_p_capped
+            u_bars.append(u_p - t_p)
+            T += t_p
+            U += u_p
 
         return {
                 'T':T, 
