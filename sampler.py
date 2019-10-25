@@ -12,13 +12,14 @@ class Sampler:
 
     audit: RiskLimitingAudit
 
-    def __init__(self, audit_type, seed, risk_limit, contests):
+    def __init__(self, audit_type, seed, risk_limit, contests, batch_results=None):
         """
         Initializes PRNG, computes margins, and returns initial sample
         sizes parameterized by likelihood that the initial sample will confirm the
         election result, assuming no discrpancies.
 
         Inputs:
+            audit_type - the type of audit to run
             seed - seed used to initialized random functions
             risk_limit - the risk-limit to compute sample sizes from
             contests - dictionary of targeted contests. Maps:
@@ -32,6 +33,7 @@ class Sampler:
                             }
                             ...
                         }
+            batch_results - election results in each batch, for use by CAST
 
         Outputs:
         """
@@ -42,6 +44,10 @@ class Sampler:
 
         if audit_type == 'BRAVO':
             self.audit = Bravo(risk_limit)
+        elif audit_type == 'CAST':
+            if not batch_results:
+                raise Exception('Must include batch results to use CAST')
+            self.audit = CAST(risk_limit, batch_results)
 
     def compute_margins(self):
         """
