@@ -25,6 +25,8 @@ import { api, testNumber } from '../utilities'
 import { generateOptions, ErrorLabel } from '../Form/_helpers'
 import FormTitle from '../Form/FormTitle'
 import FormField from '../Form/FormField'
+import number, { parse as parseNumber } from '../../utils/number-schema'
+import { formattedUpTo } from '../../utils/indexes'
 
 export const Select = styled(HTMLSelect)`
   margin-left: 5px;
@@ -55,7 +57,7 @@ interface SelectBallotsToAuditValues {
 }
 
 const schema = Yup.object().shape({
-  auditBoards: Yup.number()
+  auditBoards: number()
     .typeError('Must be a number')
     .min(1, 'Too few Audit Boards')
     .max(15, 'Too many Audit Boards')
@@ -81,12 +83,12 @@ const SelectBallotsToAudit: React.FC<Props> = ({
 
   const handlePost = async (values: SelectBallotsToAuditValues) => {
     try {
-      const auditBoards = Array.from(
-        Array(parseInt(values.auditBoards)).keys()
-      ).map(i => {
+      const auditBoards = [
+        ...formattedUpTo(parseNumber(values.auditBoards)),
+      ].map(auditBoardIndex => {
         return {
           id: uuidv4(),
-          name: `Audit Board #${i + 1}`,
+          name: `Audit Board #${auditBoardIndex}`,
           members: [],
         }
       })
@@ -96,8 +98,8 @@ const SelectBallotsToAudit: React.FC<Props> = ({
         {
           id: uuidv4(),
           name: 'Jurisdiction 1',
-          contests: [...audit.contests].map(contest => contest.id),
-          auditBoards: auditBoards,
+          contests: audit.contests.map(contest => contest.id),
+          auditBoards,
         },
       ]
       setIsLoading(true)
@@ -153,7 +155,7 @@ const SelectBallotsToAudit: React.FC<Props> = ({
       ((audit.jurisdictions.length &&
         audit.jurisdictions[0].auditBoards.length) ||
         1),
-    manifest: null,
+    manifest: null, // eslint-disable-line no-null/no-null
     sampleSize: [...audit.rounds[0].contests].reduce(
       (a: { [key: string]: string }, c) => {
         a[c.id] =
@@ -222,7 +224,6 @@ const SelectBallotsToAudit: React.FC<Props> = ({
       validateOnChange={false}
       render={({
         handleBlur,
-        handleChange,
         handleSubmit,
         values,
         errors,
@@ -261,7 +262,7 @@ const SelectBallotsToAudit: React.FC<Props> = ({
                           selectedValue={getIn(values, `sampleSize[${key}]`)}
                           disabled={sampleSizeSelected}
                         >
-                          {sampleSizeOptions[key].map((option, j) => {
+                          {sampleSizeOptions[key].map(option => {
                             return (
                               <Radio value={option.size} key={option.size}>
                                 {option.type
@@ -342,7 +343,7 @@ const SelectBallotsToAudit: React.FC<Props> = ({
                       setFieldValue(
                         'manifest',
                         (e.currentTarget.files && e.currentTarget.files[0]) ||
-                          null
+                          undefined
                       )
                     }}
                     hasSelection={!!values.manifest}

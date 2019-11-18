@@ -1,4 +1,6 @@
-import { Audit } from '../../types'
+/* eslint-disable no-null/no-null */
+
+import { Audit, Ballot } from '../../types'
 
 export const statusStates: Audit[] = [
   {
@@ -51,7 +53,7 @@ export const statusStates: Audit[] = [
       },
     ],
     name: 'contest name',
-    randomSeed: '123456789',
+    randomSeed: '12345678901234567890abcdefghijklmnopqrstuvwxyz😊',
     riskLimit: '1',
   },
   {
@@ -168,7 +170,7 @@ export const statusStates: Audit[] = [
       },
     ],
     name: 'contest name',
-    randomSeed: '123456789',
+    randomSeed: '12345678901234567890abcdefghijklmnopqrstuvwxyz😊',
     riskLimit: '1',
   },
   {
@@ -236,7 +238,7 @@ export const statusStates: Audit[] = [
       },
     ],
     name: 'contest name',
-    randomSeed: '123456789',
+    randomSeed: '12345678901234567890abcdefghijklmnopqrstuvwxyz😊',
     riskLimit: '1',
   },
   {
@@ -307,7 +309,7 @@ export const statusStates: Audit[] = [
       },
     ],
     name: 'contest name',
-    randomSeed: '123456789',
+    randomSeed: '12345678901234567890abcdefghijklmnopqrstuvwxyz😊',
     riskLimit: '1',
   },
   {
@@ -371,7 +373,7 @@ export const statusStates: Audit[] = [
       },
     ],
     name: 'contest name',
-    randomSeed: '123456789',
+    randomSeed: '12345678901234567890abcdefghijklmnopqrstuvwxyz😊',
     riskLimit: '1',
   },
 ]
@@ -382,7 +384,7 @@ export const ballotManifest = new File(
   { type: 'text/csv' }
 )
 
-export const dummyBallots = {
+export const dummyBallots: { ballots: Ballot[] } = {
   ballots: [
     {
       batch: {
@@ -395,6 +397,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -407,6 +413,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -419,6 +429,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -431,6 +445,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -443,6 +461,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -455,6 +477,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -467,6 +493,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -479,6 +509,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -491,6 +525,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -503,6 +541,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -515,6 +557,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -527,6 +573,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -539,6 +589,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -551,6 +605,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -563,6 +621,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -575,6 +637,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -587,6 +653,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -599,6 +669,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -611,6 +685,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -623,6 +701,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -635,6 +717,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -647,6 +733,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -659,6 +749,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -671,6 +765,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -683,6 +781,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -695,6 +797,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -707,6 +813,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -719,6 +829,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -731,6 +845,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -743,6 +861,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -755,6 +877,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -767,6 +893,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -779,6 +909,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -791,6 +925,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -803,6 +941,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -815,6 +957,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -827,6 +973,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -839,6 +989,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -851,6 +1005,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
     {
       batch: {
@@ -863,8 +1021,10 @@ export const dummyBallots = {
       vote: null,
       comment: '',
       timesSampled: 1,
+      auditBoard: {
+        id: 'audit-board-1',
+        name: 'Audit Board #1',
+      },
     },
   ],
 }
-
-export default statusStates

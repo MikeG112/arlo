@@ -6,7 +6,7 @@ from sampler import Sampler
 
 @pytest.fixture
 def sampler():
-    seed = 12345678901234567890
+    seed = '12345678901234567890abcdefghijklmnopqrstuvwxyz😊'
 
     risk_limit = .1
     contests = {
@@ -178,4 +178,51 @@ expected_second_sample = [
     ('0.158020947', ('pct 1', 21), 1),
     ('0.168479164', ('pct 4', 23), 1),
     ('0.170505934', ('pct 1', 12), 1)
+=======
+    ('pct 1', 4),
+    ('pct 1', 7),
+    ('pct 1', 8),
+    ('pct 1', 12),
+    ('pct 1', 20),
+    ('pct 1', 20),
+    ('pct 1', 20),
+    ('pct 1', 22),
+    ('pct 2', 1),
+    ('pct 2', 3),
+    ('pct 2', 9),
+    ('pct 3', 10),
+    ('pct 3', 12),
+    ('pct 3', 15),
+    ('pct 3', 20),
+    ('pct 3', 24),
+    ('pct 4', 3),
+    ('pct 4', 17),
+    ('pct 4', 19),
+    ('pct 4', 20)
+]
+
+expected_first_sample = [
+    ('pct 1', 7),
+    ('pct 1', 8),
+    ('pct 1', 20),
+    ('pct 1', 20),
+    ('pct 1', 22),
+    ('pct 2', 3),
+    ('pct 3', 12),
+    ('pct 3', 15),
+    ('pct 3', 24),
+    ('pct 4', 19)
+]
+
+expected_second_sample = [
+    ('pct 1', 4),
+    ('pct 1', 12),
+    ('pct 1', 20),
+    ('pct 2', 1),
+    ('pct 2', 9),
+    ('pct 3', 10),
+    ('pct 3', 20),
+    ('pct 4', 3),
+    ('pct 4', 17),
+    ('pct 4', 20)
 ]

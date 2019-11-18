@@ -1,7 +1,8 @@
-import os, datetime, csv, io, math, json, uuid
+import os, datetime, csv, io, math, json, uuid, locale, re
 from flask import Flask, jsonify, request, Response
 from flask_sqlalchemy import SQLAlchemy
 from sampler import Sampler
+from werkzeug.exceptions import InternalServerError
 
 from sqlalchemy.engine import Engine
 from sqlalchemy import event
@@ -261,6 +262,11 @@ def check_round(election, jurisdiction_id, round_id):
 
     return is_complete
 
+def election_timestamp_name(election) -> str:
+    clean_election_name = re.sub(r'[^a-zA-Z0-9]+', r'-', election.name)
+    now = datetime.datetime.utcnow().isoformat(timespec='minutes')
+    return f'{clean_election_name}-{now}'
+
 @app.route('/election/new', methods=["POST"])
 def election_new():
     election_id = create_election()
@@ -432,11 +438,21 @@ def jurisdictions_set(election_id=None):
 @app.route('/election/<election_id>/jurisdiction/<jurisdiction_id>/manifest', methods=["DELETE","POST"])
 @app.route('/jurisdiction/<jurisdiction_id>/manifest', methods=["DELETE","POST"])
 def jurisdiction_manifest(jurisdiction_id, election_id=None):
+    BATCH_NAME = 'Batch Name'
+    NUMBER_OF_BALLOTS = 'Number of Ballots'
+    STORAGE_LOCATION = 'Storage Location'
+    TABULATOR = 'Tabulator'
+
     election = get_election(election_id)
     jurisdiction = Jurisdiction.query.filter_by(election_id = election.id, id = jurisdiction_id).one()
 
     if not jurisdiction:
-        return "no jurisdiction", 404
+        return jsonify(errors=[
+            {
+                'message': f'No jurisdiction found with id: {jurisdiction_id}',
+                'errorType': 'NotFoundError'
+            }
+        ]), 404
 
     if request.method == "DELETE":
         jurisdiction.manifest = None
@@ -461,16 +477,41 @@ def jurisdiction_manifest(jurisdiction_id, election_id=None):
     jurisdiction.manifest_uploaded_at = datetime.datetime.utcnow()
 
     manifest_csv = csv.DictReader(io.StringIO(manifest_string))
+
+    missing_fields = [field for field in [BATCH_NAME, NUMBER_OF_BALLOTS] if field not in manifest_csv.fieldnames]
+
+    if missing_fields:
+        return jsonify(errors=[
+            {
+                'message': f'Missing required CSV field "{field}"',
+                'errorType': 'MissingRequiredCsvField',
+                'fieldName': field
+            }
+            for field in missing_fields
+        ]), 400
+
     num_batches = 0
     num_ballots = 0
     for row in manifest_csv:
+        num_ballots_in_batch_csv = row[NUMBER_OF_BALLOTS]
+
+        try:
+            num_ballots_in_batch = locale.atoi(num_ballots_in_batch_csv)
+        except:
+            return jsonify(errors=[
+                {
+                    'message': f'Invalid value for "{NUMBER_OF_BALLOTS}" on line {manifest_csv.line_num}: {num_ballots_in_batch_csv}',
+                    'errorType': 'InvalidCsvIntegerField'
+                }
+            ]), 400
+
         batch = Batch(
             id = str(uuid.uuid4()),
-            name = row['Batch Name'],
+            name = row[BATCH_NAME],
             jurisdiction_id = jurisdiction.id,
-            num_ballots = int(row['Number of Ballots']),
-            storage_location = row.get('Storage Location', None),
-            tabulator = row.get('Tabulator', None)
+            num_ballots = num_ballots_in_batch,
+            storage_location = row.get(STORAGE_LOCATION, None),
+            tabulator = row.get(TABULATOR, None)
         )
         db.session.add(batch)
         num_batches += 1
@@ -524,24 +565,44 @@ def set_audit_board(election_id, jurisdiction_id, audit_board_id):
     try:
         attributes = request.get_json()
     except:
-        return "invalid request: could not parse JSON", 400
+        return jsonify(errors=[
+            {
+                'message': 'Could not parse JSON',
+                'errorType': 'BadRequest'
+            }
+        ]), 400
 
     audit_boards = AuditBoard.query.filter_by(id=audit_board_id) \
         .join(Jurisdiction).filter_by(id=jurisdiction_id, election_id=election_id) \
         .all()
 
     if not audit_boards:
-        return f"no audit board found with id={audit_board_id}", 404
+        return jsonify(errors=[
+            {
+                'message': f'No audit board found with id={audit_board_id}',
+                'errorType': 'NotFoundError'
+            }
+        ]), 404
 
     if len(audit_boards) > 1:
-        return f"found too many audit boards with id={audit_board_id}", 400
+        return jsonify(errors=[
+            {
+                'message': f'Found too many audit boards with id={audit_board_id}',
+                'errorType': 'BadRequest'
+            }
+        ]), 400
 
     audit_board = audit_boards[0]
     members = attributes.get('members', None)
 
     if members is not None:
         if len(members) != AUDIT_BOARD_MEMBER_COUNT:
-            return f"members must contain exactly {AUDIT_BOARD_MEMBER_COUNT} entries, got {len(members)}", 400
+            return jsonify(errors=[
+                {
+                    'message': f'Members must contain exactly {AUDIT_BOARD_MEMBER_COUNT} entries, got {len(members)}',
+                    'errorType': 'BadRequest'
+                }
+            ]), 400
 
         for i in range(0, AUDIT_BOARD_MEMBER_COUNT):
             setattr(audit_board, f"member_{i + 1}", members[i]['name'])
@@ -556,13 +617,44 @@ def set_audit_board(election_id, jurisdiction_id, audit_board_id):
 
     return jsonify(status="ok")
 
+@app.route('/election/<election_id>/jurisdiction/<jurisdiction_id>/round/<round_id>/ballot-list')
+def ballot_list(election_id, jurisdiction_id, round_id):
+    query = db.session.query(AuditBoard, Batch, SampledBallot) \
+        .filter(Batch.id == SampledBallot.batch_id) \
+        .filter(SampledBallot.jurisdiction_id == jurisdiction_id) \
+        .filter(SampledBallot.round_id == round_id) \
+        .order_by(AuditBoard.name, Batch.name, SampledBallot.ballot_position)
+
+    return jsonify(
+        ballots=[
+            {
+                "timesSampled": ballot.times_sampled,
+                "status": 'AUDITED' if ballot.vote is not None else None,
+                "vote": ballot.vote,
+                "comment": ballot.comment,
+                "position": ballot.ballot_position,
+                "batch": {
+                    "id": batch.id,
+                    "name": batch.name,
+                    "tabulator": batch.tabulator
+                },
+                "auditBoard": {
+                    "id": audit_board.id,
+                    "name": audit_board.name
+                }
+            }
+            for (audit_board, batch, ballot) in query
+        ]
+    )
+
 @app.route('/election/<election_id>/jurisdiction/<jurisdiction_id>/audit-board/<audit_board_id>/round/<round_id>/ballot-list')
-def ballot_list(election_id, jurisdiction_id, audit_board_id, round_id):
+def ballot_list_by_audit_board(election_id, jurisdiction_id, audit_board_id, round_id):
     query = db.session.query(Batch, SampledBallot) \
         .filter(Batch.id == SampledBallot.batch_id) \
         .filter(SampledBallot.jurisdiction_id == jurisdiction_id) \
         .filter(SampledBallot.audit_board_id == audit_board_id) \
-        .filter(SampledBallot.round_id == round_id)
+        .filter(SampledBallot.round_id == round_id) \
+        .order_by(Batch.name, SampledBallot.ballot_position)
 
     return jsonify(
         ballots=[
@@ -587,7 +679,12 @@ def ballot_set(election_id, jurisdiction_id, batch_id, round_id, ballot_position
     try:
         attributes = request.get_json()
     except:
-        return "invalid request: could not parse JSON", 400
+        return jsonify(errors=[
+            {
+                'message': 'Could not parse JSON',
+                'errorType': 'BadRequest'
+            }
+        ]), 400
 
     ballots = SampledBallot \
         .query.filter_by(jurisdiction_id=jurisdiction_id, batch_id=batch_id, ballot_position=ballot_position) \
@@ -595,9 +692,19 @@ def ballot_set(election_id, jurisdiction_id, batch_id, round_id, ballot_position
         .all()
 
     if not ballots:
-        return "no ballot", 404
+        return jsonify(errors=[
+            {
+                'message': f'No ballot found with election_id={election_id}, jurisdiction_id={jurisdiction_id}, batch_id={batch_id}, ballot_position={ballot_position}, round={round_id}',
+                'errorType': 'NotFoundError'
+            }
+        ]), 404
     elif len(ballots) > 1:
-        return "multiple ballots found, expected one", 400
+        return jsonify(errors=[
+            {
+                'message': f'Multiple ballots found with election_id={election_id}, jurisdiction_id={jurisdiction_id}, batch_id={batch_id}, ballot_position={ballot_position}, round={round_id}',
+                'errorType': 'BadRequest'
+            }
+        ]), 400
 
     ballot = ballots[0]
 
@@ -628,10 +735,8 @@ def jurisdiction_retrieval_list(jurisdiction_id, round_num, election_id=None):
     for ballot in ballots:
         retrieval_list_writer.writerow([ballot.batch.name, ballot.ballot_position, ballot.batch.storage_location, ballot.batch.tabulator, ballot.times_sampled, ballot.audit_board.name])
 
-    clean_jurisdiction_name = jurisdiction.name.replace(" ","-")
-        
     response = Response(csv_io.getvalue())
-    response.headers['Content-Disposition'] = 'attachment; filename="ballot-retrieval-{:s}-{:s}.csv"'.format(clean_jurisdiction_name, round_num)
+    response.headers['Content-Disposition'] = f'attachment; filename="ballot-retrieval-{election_timestamp_name(election)}.csv"'
     return response
 
 @app.route('/election/<election_id>/jurisdiction/<jurisdiction_id>/<round_num>/results', methods=["POST"])
@@ -705,7 +810,7 @@ def audit_report(election_id=None):
 
     
     response = Response(csv_io.getvalue())
-    response.headers['Content-Disposition'] = 'attachment; filename="audit-report.csv"'
+    response.headers['Content-Disposition'] = f'attachment; filename="audit-report-{election_timestamp_name(election)}.csv"'
     return response
     
 
@@ -727,6 +832,22 @@ def audit_reset(election_id=None):
 @app.route('/election/<election_id>')
 def serve(election_id=None):
     return app.send_static_file('index.html')
+
+@app.errorhandler(InternalServerError)
+def handle_500(e):
+    original = getattr(e, "original_exception", None)
+
+    if original is None:
+        # direct 500 error, such as abort(500)
+        return e
+
+    # wrapped unhandled error
+    return jsonify(errors=[
+        {
+            'message': str(original),
+            'errorType': type(original).__name__
+        }
+    ]), 500
 
 
 if __name__ == '__main__':

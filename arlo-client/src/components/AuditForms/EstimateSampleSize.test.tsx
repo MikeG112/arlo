@@ -11,7 +11,7 @@ import EstimateSampleSize, {
   Action,
 } from './EstimateSampleSize'
 import { regexpEscape } from '../testUtilities'
-import statusStates from './_mocks'
+import { statusStates } from './_mocks'
 import * as utilities from '../utilities'
 
 const apiMock: jest.SpyInstance<
@@ -41,8 +41,8 @@ const estimateSampleSizeMocks = {
     },
     {
       key:
-        'Enter the random number to seed the pseudo-random number generator.',
-      value: '12345678901234512345',
+        'Enter the random characters to seed the pseudo-random number generator.',
+      value: '12345678901234567890abcdefghijklmnopqrstuvwxyz😊',
     },
   ],
   errorInputs: [
@@ -133,28 +133,22 @@ const estimateSampleSizeMocks = {
     },
     {
       key:
-        'Enter the random number to seed the pseudo-random number generator.',
+        'Enter the random characters to seed the pseudo-random number generator.',
       value: '',
       error: 'Required',
     },
     {
       key:
-        'Enter the random number to seed the pseudo-random number generator.',
-      value: 'test',
-      error: 'Must be only numbers',
-    },
-    {
-      key:
-        'Enter the random number to seed the pseudo-random number generator.',
-      value: '123451234512345123451',
-      error: 'Must be 20 digits or less',
+        'Enter the random characters to seed the pseudo-random number generator.',
+      value: 'x'.repeat(101),
+      error: 'Must be 100 characters or fewer',
     },
   ],
   post: {
     method: 'POST',
     body: {
       name: 'Election Name',
-      randomSeed: '12345678901234512345',
+      randomSeed: '12345678901234567890abcdefghijklmnopqrstuvwxyz😊',
       riskLimit: 2,
       contests: [
         {
@@ -182,7 +176,10 @@ const estimateSampleSizeMocks = {
   },
 }
 
-function getDisplayName(WrappedComponent: React.ComponentClass) {
+function getDisplayName(WrappedComponent: {
+  displayName?: string
+  name?: string
+}) {
   return WrappedComponent.displayName || WrappedComponent.name || 'Component'
 }
 
@@ -195,7 +192,7 @@ describe('EstimateSampleSize', () => {
     //FieldRight,
     InputLabel,
     Action,
-  ].forEach((Component: any) => {
+  ].forEach(Component => {
     it(`renders ${getDisplayName(Component)} correctly`, () => {
       const { container } = render(<Component />)
       expect(container).toMatchSnapshot()
