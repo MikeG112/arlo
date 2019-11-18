@@ -99,7 +99,6 @@ def test_draw_sample(sampler):
     }
 
     sample = sampler.draw_sample(manifest, 20)
-    print(sample)
 
     for i, item in enumerate(sample):
         expected = expected_sample[i]
