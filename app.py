@@ -175,9 +175,6 @@ def sample_ballots(election, round):
 
     audit_boards = jurisdiction.audit_boards
     
-    last_sample = None
-    last_sampled_ballot = None
-
     batch_sizes = {}
     batches_to_ballots = {}
     # Build batch - batch_size map
